@@ -18,7 +18,7 @@ import com.predic8.membrane.core.http.Message;
 import com.predic8.membrane.core.http.ReadingBodyException;
 import com.predic8.membrane.core.http.Response;
 import com.predic8.membrane.core.multipart.XOPReconstitutor;
-import com.predic8.xml.beautifier.XMLInputFactoryFactory;
+import com.predic8.membrane.core.util.xml.parser.HardenedStaxInputFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -28,7 +28,6 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
@@ -39,8 +38,6 @@ import static com.predic8.membrane.core.http.MimeType.TEXT_XML_UTF8;
 import static com.predic8.membrane.core.http.Response.ok;
 import static com.predic8.membrane.core.util.xml.XMLUtil.mapToXml;
 import static com.predic8.membrane.core.util.xml.XMLUtil.xmlNode2String;
-import static javax.xml.stream.XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES;
-import static javax.xml.stream.XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES;
 
 public class SOAPUtil {
 
@@ -49,7 +46,7 @@ public class SOAPUtil {
 
     public static boolean isSOAP( XOPReconstitutor xopr, Message msg) {
         try {
-            XMLEventReader parser = XMLInputFactoryFactory.inputFactory().createXMLEventReader(xopr.reconstituteIfNecessary(msg));
+            XMLEventReader parser = HardenedStaxInputFactory.inputFactory().createXMLEventReader(xopr.reconstituteIfNecessary(msg));
 
             while (parser.hasNext()) {
                 XMLEvent event = parser.nextEvent();
@@ -120,10 +117,7 @@ public class SOAPUtil {
          * 2: waiting for "<soapenv:Fault>"
          */
         try {
-            var f = XMLInputFactory.newInstance();
-            f.setProperty(IS_REPLACING_ENTITY_REFERENCES, false);
-            f.setProperty(IS_SUPPORTING_EXTERNAL_ENTITIES, false);
-            var parser = f.createXMLEventReader(xopr.reconstituteIfNecessary(msg));
+            var parser = HardenedStaxInputFactory.inputFactory().createXMLEventReader(xopr.reconstituteIfNecessary(msg));
 
             SoapVersion version = null;
             int state = 0;
